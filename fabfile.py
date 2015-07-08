@@ -4,8 +4,6 @@
 
     Fab file to build and push documentation to github
 
-    :copyright: © 2013 by Openlabs Technologies & Consulting (P) Limited
-    :license: BSD, see LICENSE for more details.
 """
 import time
 
@@ -43,4 +41,4 @@ def upload_documentation():
     local('git push')
 
     print "Documentation uploaded to Github."
-    print "View at: http://openlabs.github.io/trytond-prestashop"
+    print "View at: http://fulfilio.github.io/trytond-prestashop"

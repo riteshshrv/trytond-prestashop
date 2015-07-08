@@ -2,8 +2,6 @@
 """
     test_product
 
-    :copyright: (c) 2013-2015 by Openlabs Technologies & Consulting (P) Limited
-    :license: GPLv3, see LICENSE for more details.
 """
 import unittest
 

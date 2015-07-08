@@ -2,8 +2,6 @@
 """
     party
 
-    :copyright: (c) 2013-2015 by Openlabs Technologies & Consulting (P) Limited
-    :license: GPLv3, see LICENSE for more details.
 """
 from trytond.model import fields
 from trytond.pool import PoolMeta, Pool
