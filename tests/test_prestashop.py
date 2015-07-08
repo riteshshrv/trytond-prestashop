@@ -4,8 +4,6 @@
 
     Test Prestashop integration with tryton.
 
-    :copyright: (c) 2013-2015 by Openlabs Technologies & Consulting (P) Limited
-    :license: GPLv3, see LICENSE for more details.
 """
 import sys
 import os
@@ -152,7 +150,7 @@ class BaseTestCase(unittest.TestCase):
 
         with Transaction().set_context(company=None):
             self.company_party, = self.Party.create([{
-                'name': 'Openlabs',
+                'name': 'Fulfil.IO',
             }])
 
             self.company, = self.Company.create([{
