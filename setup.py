@@ -88,7 +88,7 @@ MODULE2PREFIX = {
     'product_notebook': 'openlabs',
 }
 MODULE = "prestashop"
-PREFIX = "trytond"
+PREFIX = "fio"
 for dep in info.get('depends', []):
     if not re.match(r'(ir|res|webdav)(\W|$)', dep):
         requires.append(
