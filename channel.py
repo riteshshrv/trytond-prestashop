@@ -2,8 +2,6 @@
 """
     prestashop
 
-    :copyright: (c) 2015 by Openlabs Technologies & Consulting (P) Limited
-    :license: GPLv3, see LICENSE for more details.
 """
 from datetime import datetime
 
