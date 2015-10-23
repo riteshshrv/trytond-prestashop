@@ -105,7 +105,6 @@ class Template:
         :returns: Active record of created template
         """
         Product = Pool().get('product.product')
-        Uom = Pool().get('product.uom')
         SaleChannel = Pool().get('sale.channel')
         SiteLang = Pool().get('prestashop.site.lang')
 
