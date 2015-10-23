@@ -149,7 +149,6 @@ class Template:
 
         # For a product in prestashop, create a template and a product in
         # tryton.
-        unit, = Uom.search([('name', '=', 'Unit')], limit=1)
         with Transaction().set_context(language=site_lang.language.code):
             # XXX: Rounding prices to 4 decimal places.
             # In 3.6 rounding digites can be configured in tryton config
@@ -161,8 +160,8 @@ class Template:
                 'list_price': round_price(str(product_record.price)),
                 'cost_price': round_price(str(product_record.wholesale_price)),
                 'salable': True,
-                'default_uom': unit.id,
-                'sale_uom': unit.id,
+                'default_uom': channel.default_uom.id,
+                'sale_uom': channel.default_uom.id,
                 'products': [('create', [variant_data])],
                 'prestashop_ids': [('create', [{
                     'prestashop_id': product_record.id.pyval,
