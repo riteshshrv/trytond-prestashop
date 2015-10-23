@@ -438,7 +438,7 @@ class SaleLine:
         return {
             'quantity': order_details.product_quantity.pyval,
             'product': product.id,
-            'unit': product.sale_uom.id,
+            'unit': channel.default_uom.id,
             'unit_price': Decimal(str(
                 order_details.unit_price_tax_excl
             )).quantize(Decimal(10) ** - channel.company.currency.digits),
