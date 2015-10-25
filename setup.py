@@ -85,6 +85,7 @@ requires = [
 ]
 MODULE2PREFIX = {
     'sale_channel': 'fio',
+    'product_variant': 'fio',
     'product_notebook': 'openlabs',
 }
 MODULE = "prestashop"

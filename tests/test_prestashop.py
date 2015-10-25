@@ -236,13 +236,15 @@ class BaseTestCase(unittest.TestCase):
                 'type': 'service',
                 'salable': True,
                 'sale_uom': uom,
-                'list_price': Decimal('10'),
-                'cost_price': Decimal('5'),
                 'default_uom': uom,
                 'cost_price_method': 'fixed',
                 'account_revenue': self.get_account_by_kind('revenue').id,
                 'products': [
-                    ('create', self.ProductTemplate.default_products())
+                    ('create', [{
+                        'code': 'Shipping',
+                        'list_price': Decimal('10'),
+                        'cost_price': Decimal('5'),
+                    }])
                 ]
             }])
             warehouse, = self.Location.search([
