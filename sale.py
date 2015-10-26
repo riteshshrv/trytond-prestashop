@@ -427,7 +427,7 @@ class SaleLine:
         client = channel.get_prestashop_client()
 
         # Import product
-        product = channel.import_product(order_row_record)
+        product = channel.get_product(order_row_record)
 
         order_details = client.order_details.get(order_row_record.id.pyval)
 
