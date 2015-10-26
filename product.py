@@ -14,6 +14,14 @@ __all__ = ['Product', 'Template', 'TemplatePrestashop', 'ProductPrestashop']
 __metaclass__ = PoolMeta
 
 
+def round_price(price):
+    # XXX: Rounding prices to 4 decimal places.
+    # In 3.6 rounding digites can be configured in tryton config
+    return Decimal(price).quantize(
+        Decimal('0.0001'), rounding=ROUND_HALF_EVEN
+    )
+
+
 class TemplatePrestashop(ModelSQL, ModelView):
     """Product Template - Prestashop Channel store
 
@@ -125,7 +133,6 @@ class Template:
         site_lang = SiteLang.search_using_ps_id(
             int(name_in_first_lang.get('id'))
         )
-
         # Product name and description can be in different first languages
         # So create the variant with description only if the first language is
         # same on both
@@ -134,6 +141,8 @@ class Template:
             variant_data = {
                 'code': product_record.reference.pyval or None,
                 'description': desc_in_first_lang.pyval,
+                'list_price': round_price(str(product_record.price)),
+                'cost_price': round_price(str(product_record.wholesale_price)),
                 'prestashop_combination_ids': [('create', [{
                     'prestashop_combination_id': 0,
                 }])]
@@ -141,6 +150,8 @@ class Template:
         else:
             variant_data = {
                 'code': product_record.reference.pyval or None,
+                'list_price': round_price(str(product_record.price)),
+                'cost_price': round_price(str(product_record.wholesale_price)),
                 'prestashop_combination_ids': [('create', [{
                     'prestashop_combination_id': 0,
                 }])]
@@ -149,15 +160,8 @@ class Template:
         # For a product in prestashop, create a template and a product in
         # tryton.
         with Transaction().set_context(language=site_lang.language.code):
-            # XXX: Rounding prices to 4 decimal places.
-            # In 3.6 rounding digites can be configured in tryton config
-            round_price = lambda price: Decimal(price).quantize(
-                Decimal('0.0001'), rounding=ROUND_HALF_EVEN
-            )
             template, = cls.create([{
                 'name': name_in_first_lang.pyval,
-                'list_price': round_price(str(product_record.price)),
-                'cost_price': round_price(str(product_record.wholesale_price)),
                 'salable': True,
                 'default_uom': channel.default_uom.id,
                 'sale_uom': channel.default_uom.id,
@@ -383,6 +387,8 @@ class Product:
         product, = cls.create([{
             'template': template.id,
             'code': combination_record.reference.pyval or None,
+            'list_price': round_price(str(combination_record.price)),
+            'cost_price': round_price(str(combination_record.wholesale_price)),
             'prestashop_combination_ids': [('create', [{
                 'prestashop_combination_id': combination_record.id.pyval,
             }])]
