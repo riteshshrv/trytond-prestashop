@@ -166,8 +166,8 @@ class Address:
                 address_record.firstname.pyval,
                 address_record.lastname.pyval
             ]),
-            'street': address_record.address1.pyval,
-            'streetbis': address_record.address2.pyval or None,
+            'street': unicode(address_record.address1.pyval),
+            'streetbis': unicode(address_record.address2.pyval or ''),
             'zip': unicode(address_record.postcode.pyval),
             'city': address_record.city.pyval,
             'country': country.id if country else None,
