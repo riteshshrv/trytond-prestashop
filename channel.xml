@@ -40,42 +40,6 @@
             </field>
         </record>
 
-        <record model="ir.ui.view" id="prestashop_site_order_state_view_form">
-            <field name="model">prestashop.site.order_state</field>
-            <field name="type">form</field>
-            <field name="arch" type="xml">
-                <![CDATA[
-                    <form string="Prestashop Site Order State">
-                        <label name="prestashop_state" />
-                        <field name="prestashop_state" />
-                        <label name="order_state" />
-                        <field name="order_state" />
-                        <label name="channel" />
-                        <field name="channel" />
-                        <separator string="Configuration" id="sepr_config"/>
-                        <label name="invoice_method" />
-                        <field name="invoice_method" />
-                        <label name="shipment_method" />
-                        <field name="shipment_method" />
-                    </form>
-                ]]>
-            </field>
-        </record>
-
-        <record model="ir.ui.view" id="prestashop_site_order_state_view_tree">
-            <field name="model">prestashop.site.order_state</field>
-            <field name="type">tree</field>
-            <field name="arch" type="xml">
-                <![CDATA[
-                    <tree string="Prestashop Site Order States">
-                        <field name="channel" />
-                        <field name="prestashop_state" />
-                        <field name="order_state" />
-                    </tree>
-                ]]>
-            </field>
-        </record>
-
         <record model="ir.action.wizard" id="wizard_prestashop_export_orders">
           <field name="name">Export Orders to Prestashop</field>
             <field name="wiz_name">prestashop.export_orders.wizard</field>
