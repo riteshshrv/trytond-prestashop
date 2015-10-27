@@ -199,7 +199,11 @@ class Subdivision:
         # The country should have been cached till now for sure
         country = Country.get_using_ps_id(state_data.id_country.pyval)
         subdivision = cls.search([
-            ('code', '=', country.code + '-' + state_data.iso_code.pyval)
+            # XXX: Sometime iso code can be integer like `Beijing:11`
+            (
+                'code', '=', country.code + '-' +
+                unicode(state_data.iso_code.pyval)
+            )
         ])
 
         if not subdivision:
