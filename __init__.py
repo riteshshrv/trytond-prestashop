@@ -14,7 +14,7 @@ from country import (
 )
 from currency import CurrencyPrestashop, Currency
 from party import Party, Address, ContactMechanism
-from product import Template, TemplatePrestashop, Product, ProductPrestashop
+from product import Product, ProductSaleChannelListing
 from sale import Sale, SaleLine, SiteOrderState
 from lang import Language, SiteLanguage
 
@@ -36,13 +36,11 @@ def register():
         Party,
         Address,
         ContactMechanism,
-        Template,
-        TemplatePrestashop,
         Product,
-        ProductPrestashop,
         Sale,
         SaleLine,
         SiteOrderState,
+        ProductSaleChannelListing,
         module='prestashop', type_='model')
     Pool.register(
         PrestashopExportOrdersWizard,

@@ -80,7 +80,7 @@ major_version = int(major_version)
 minor_version = int(minor_version)
 
 requires = [
-    'pystashop',
+    'pystashop>=0.6',
     'pytz',
 ]
 MODULE2PREFIX = {
@@ -142,6 +142,9 @@ setup(
     """ % (MODULE, MODULE),
     test_suite='tests',
     test_loader='trytond.test_loader:Loader',
+    dependency_links=[
+        'https://pypi.fulfil.io/pypi/pystashop/',
+    ],
     cmdclass={
         'test': SQLiteTest,
         'test_on_postgres': PostgresTest,

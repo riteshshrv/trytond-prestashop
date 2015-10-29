@@ -1,3 +1,4 @@
+--extra-index-url https://pypi.fulfil.io/pypi/
 psycopg2
 
 # Install this package itself

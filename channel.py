@@ -376,37 +376,61 @@ class Channel:
         Import specific product for this prestashop channel
         Downstream implementation for channel.import_product
         """
-        Product = Pool().get('product.product')
-        Template = Pool().get('product.template')
-
-        # TODO: Products need to be searched using SKU instead of
-        # prestashop order ID
-
         if self.source != 'prestashop':
             return super(Channel, self).import_product(order_row_record)
 
-        client = self.get_prestashop_client()
+        Product = Pool().get('product.product')
+        Listing = Pool().get('product.product.channel_listing')
 
-        # If the product sold is a variant, then get product from
-        # product.product
-        if order_row_record.product_attribute_id.pyval != 0:
-            product = Product.get_product_using_ps_id(
-                order_row_record.product_attribute_id.pyval
-            ) or Product.find_or_create_using_ps_data(
-                client.combinations.get(
+        client = self.get_prestashop_client()
+        product_data = None
+
+        if order_row_record.product_reference.pyval:
+            sku = unicode(order_row_record.product_reference.pyval)
+        else:
+            # XXX: Sometime SKU may not come in order_line_data pull
+            # product_data and get sku
+            if order_row_record.product_attribute_id.pyval != 0:
+                product_data = product_data or client.combinations.get(
                     order_row_record.product_attribute_id.pyval
                 )
-            )
-
-        else:
-            template = Template.get_template_using_ps_id(
-                order_row_record.product_id.pyval
-            ) or Template.find_or_create_using_ps_data(
-                client.products.get(
+            else:
+                product_data = product_data or client.products.get(
                     order_row_record.product_id.pyval
                 )
-            )
-            product = template.products[0]
+            sku = product_data.reference.pyval
+
+        products = Product.search([
+            ('code', '=', sku),
+        ])
+        listings = Listing.search([
+            ('product_identifier', '=', sku),
+            ('channel', '=', self)
+        ])
+
+        if not products or not listings:
+            # XXX: Fetch product data if it is not already being fetched
+            if not product_data and \
+                    order_row_record.product_attribute_id.pyval != 0:
+                # Its a combination product
+                product_data = client.combinations.get(
+                    order_row_record.product_attribute_id.pyval
+                )
+            elif not product_data:
+                # Its a main product
+                product_data = client.products.get(
+                    order_row_record.product_id.pyval
+                )
+
+            if not products:
+                product = Product.create_from(self, product_data)
+            else:
+                product = products[0]
+
+            if not listings:
+                Listing.create_from(self, product_data)
+        else:
+            product = products[0]
 
         return product
 

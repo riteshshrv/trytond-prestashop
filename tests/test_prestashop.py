@@ -29,7 +29,7 @@ from trytond.transaction import Transaction
 from trytond.exceptions import UserError
 from trytond.config import config
 config.set('database', 'path', '/tmp')
-PS_VERSION = '1.5'
+PS_VERSION = '1.6'
 
 
 def get_objectified_xml(resource, filename):
@@ -74,10 +74,9 @@ class BaseTestCase(unittest.TestCase):
         self.CurrencyRate = POOL.get('currency.currency.rate')
         self.ProductTemplate = POOL.get('product.template')
         self.SaleChannel = POOL.get('sale.channel')
-        self.TemplatePrestashop = POOL.get('product.template.prestashop')
+        self.ChannelListing = POOL.get('product.product.channel_listing')
         self.Product = POOL.get('product.product')
         self.Category = POOL.get('product.category')
-        self.ProductPrestashop = POOL.get('product.product.prestashop')
         self.PriceList = POOL.get('product.price_list')
         self.Uom = POOL.get('product.uom')
         self.Sale = POOL.get('sale.sale')

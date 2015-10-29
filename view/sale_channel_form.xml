@@ -20,11 +20,11 @@
         </group> 
     </xpath>
     <xpath expr="/form/notebook/page[@id='configuration']/notebook/page[@id='taxes']" position="after">
-        <page string="Prestahsop Languages" id="prestashop_languages" states="{'invisible': Not(Eval('source') == 'prestashop')}">
+        <page string="Prestashop Languages" id="prestashop_languages" states="{'invisible': Not(Eval('source') == 'prestashop')}">
             <button name="import_prestashop_languages" string="Import Prestashop Languages"/>
             <field name="prestashop_languages" mode="tree,form" colspan="4"/>
         </page>
-        <page string="Prestahsop Order States" id="prestashop_order_states" states="{'invisible': Not(Eval('source') == 'prestashop')}">
+        <page string="Prestashop Order States" id="prestashop_order_states" states="{'invisible': Not(Eval('source') == 'prestashop')}">
             <button name="import_prestashop_order_states" string="Import Prestashop Order States"/>              
             <field name="prestashop_order_states" mode="tree,form" colspan="4"/>
         </page>
