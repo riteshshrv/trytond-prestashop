@@ -15,7 +15,7 @@ from country import (
 from currency import CurrencyPrestashop, Currency
 from party import Party, Address, ContactMechanism
 from product import Product, ProductSaleChannelListing
-from sale import Sale, SaleLine, SiteOrderState
+from sale import Sale, SaleLine
 from lang import Language, SiteLanguage
 
 
@@ -39,7 +39,6 @@ def register():
         Product,
         Sale,
         SaleLine,
-        SiteOrderState,
         ProductSaleChannelListing,
         module='prestashop', type_='model')
     Pool.register(
