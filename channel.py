@@ -73,12 +73,6 @@ class Channel:
         states=INVISIBLE_IF_NOT_PRESTASHOP, depends=['source']
     )
 
-    #: The mapping between prestashop order states and tryton sale states
-    prestashop_order_states = fields.One2Many(
-        'prestashop.site.order_state', 'channel', 'Order States',
-        states=INVISIBLE_IF_NOT_PRESTASHOP, depends=['source']
-    )
-
     #: Set this to True to handle invoicing in tryton and get invoice info
     #: TODO: A provision to be implemented in future versions
     #: Also handle multiple payment methods where each will have different
@@ -124,7 +118,6 @@ class Channel:
         cls._buttons.update({
             'test_prestashop_connection': {},
             'import_prestashop_languages': {},
-            'import_prestashop_order_states': {},
             'export_prestashop_orders_button': {},
         })
 
@@ -180,45 +173,6 @@ class Channel:
         return new_records
 
     @classmethod
-    @ModelView.button
-    def import_prestashop_order_states(cls, channels):
-        """Import Order States from remote and try to link them to tryton
-        order states
-
-        :returns: List of order states created
-        """
-        SiteOrderState = Pool().get('prestashop.site.order_state')
-
-        if len(channels) != 1:
-            cls.raise_user_error('multiple_channels')
-        channel = channels[0]
-
-        channel.validate_prestashop_channel()
-
-        # Set this channel to context
-        with Transaction().set_context(current_channel=channel.id):
-
-            # If channel languages don't exist, then raise an error
-            if not channel.prestashop_languages:
-                cls.raise_user_error('languages_not_imported')
-
-            client = channel.get_prestashop_client()
-            order_states = client.order_states.get_list(display='full')
-
-            new_records = []
-            for state in order_states:
-                # If this order state already exists for this channel, skip and
-                # do not create it again
-                if SiteOrderState.search_using_ps_id(state.id.pyval):
-                    continue
-
-                new_records.append(
-                    SiteOrderState.create_using_ps_data(state)
-                )
-
-        return new_records
-
-    @classmethod
     @ModelView.button_action('prestashop.wizard_prestashop_connection')
     def test_prestashop_connection(cls, channels):
         """Test Prestashop connection and display appropriate message to user
@@ -242,6 +196,42 @@ class Channel:
         ):
             cls.raise_user_error('wrong_url')
 
+    def import_order_states(self):
+        """
+        Import order states for prestashop channel
+        Downstream implementation for channel.import_order_states
+        """
+        SiteLanguage = Pool().get('prestashop.site.lang')
+
+        if self.source != 'prestashop':
+            return super(Channel, self).import_order_states()
+
+        with Transaction().set_context({'current_channel': self.id}):
+
+            # If channel languages don't exist, then raise an error
+            if not self.prestashop_languages:
+                self.raise_user_error('languages_not_imported')
+
+            client = self.get_prestashop_client()
+            order_states = client.order_states.get_list(display='full')
+
+            for state in order_states:
+                # The name of a state can be in multiple languages
+                # If the name is in more than one language, create the record
+                # with name in first language (if a corresponding one exists on
+                # tryton) and updates the rest of the names in different
+                # languages by switching the language in context
+                name_in_langs = state.name.getchildren()
+                name_in_first_lang = name_in_langs.pop(0)
+
+                site_lang = SiteLanguage.search_using_ps_id(
+                    int(name_in_first_lang.get('id'))
+                )
+                with Transaction().set_context(
+                        language=site_lang.language.code):
+                    self.create_order_state(
+                        str(state.id.pyval), name_in_first_lang.pyval)
+
     def import_orders(self):
         """
         Downstream implementation of channel.import_orders
@@ -258,8 +248,10 @@ class Channel:
         Sale = Pool().get('sale.sale')
         self.validate_prestashop_channel()
 
-        if not self.prestashop_order_states:
+        if not self.order_states:
             self.raise_user_error('order_states_not_imported')
+
+        order_states_to_import = self.get_order_states_to_import()
 
         # Localize to the site timezone
         utc_time_now = datetime.utcnow()
@@ -268,25 +260,30 @@ class Channel:
         client = self.get_prestashop_client()
 
         with Transaction().set_context(current_channel=self.id):
+            filters = {
+                'current_state': '|'.join(map(
+                    lambda s: s.code, order_states_to_import
+                ))
+            }
             if self.last_order_import_time:
                 # In tryton all time stored is in UTC
                 # Convert the last import time to timezone of the site
                 last_order_import_time = site_tz.normalize(
                     pytz.utc.localize(self.last_order_import_time)
                 )
+                filters['date_upd'] = '{0},{1}'.format(
+                    last_order_import_time.strftime(
+                        '%Y-%m-%d %H:%M:%S'
+                    ),
+                    time_now.strftime('%Y-%m-%d %H:%M:%S')
+                )
                 orders_to_import = client.orders.get_list(
-                    filters={
-                        'date_upd': '{0},{1}'.format(
-                            last_order_import_time.strftime(
-                                '%Y-%m-%d %H:%M:%S'
-                            ),
-                            time_now.strftime('%Y-%m-%d %H:%M:%S')
-                        )
-                    }, date=1, display='full'
+                    filters=filters, date=1, display='full'
                 )
             else:
-                # FIXME: This wont scale if there are thousands of orders
-                orders_to_import = client.orders.get_list(display='full')
+                orders_to_import = client.orders.get_list(
+                    display='full', filters=filters
+                )
 
             self.write([self], {
                 'last_order_import_time': utc_time_now
@@ -329,7 +326,7 @@ class Channel:
         Sale = Pool().get('sale.sale')
         Move = Pool().get('stock.move')
 
-        if not self.prestashop_order_states:
+        if not self.order_states:
             self.raise_user_error('order_states_not_imported')
 
         time_now = datetime.utcnow()
@@ -367,7 +364,7 @@ class Channel:
             })
 
             for sale in sales_to_export:
-                sale.export_status_to_ps()
+                sale.export_order_status_to_prestashop()
 
         return sales_to_export
 
@@ -433,6 +430,42 @@ class Channel:
             product = products[0]
 
         return product
+
+    def get_default_tryton_action(self, code, name):
+        """
+        Return default tryton_actions for this channel
+        """
+        if self.source != 'prestashop':
+            return super(Channel, self).get_default_tryton_action(code, name)
+
+        # XXX: Prestashop do not have any standard code for state.
+        # So cant think of any better way to map
+        if name in ('Shipped', 'Delivered'):
+            return {
+                'action': 'import_as_past',
+                'invoice_method': 'manual',
+                'shipment_method': 'manual'
+            }
+        elif name in (
+            'Payment accepted', 'Payment remotely accepted',
+        ):
+            return {
+                'action': 'process_automatically',
+                'invoice_method': 'order',
+                'shipment_method': 'invoice'
+            }
+        elif name == 'Preparation in progress':
+            return {
+                'action': 'process_automatically',
+                'invoice_method': 'order',
+                'shipment_method': 'order'
+            }
+        else:
+            return {
+                'action': 'do_not_import',
+                'invoice_method': 'manual',
+                'shipment_method': 'manual',
+            }
 
 
 class PrestashopConnectionWizardView(ModelView):

@@ -87,7 +87,7 @@ class BaseTestCase(unittest.TestCase):
         self.CountryPrestashop = POOL.get('country.country.prestashop')
         self.SubdivisionPrestashop = POOL.get('country.subdivision.prestashop')
         self.LangPrestashop = POOL.get('prestashop.site.lang')
-        self.PrestashopOrderState = POOL.get('prestashop.site.order_state')
+        self.OrderState = POOL.get('sale.channel.order_state')
 
         self.FiscalYear = POOL.get('account.fiscalyear')
         self.Sequence = POOL.get('ir.sequence')
@@ -327,9 +327,9 @@ class BaseTestCase(unittest.TestCase):
     def setup_channels(self):
         "Setup channels"
         self.SaleChannel.import_prestashop_languages([self.channel])
-        self.SaleChannel.import_prestashop_order_states([self.channel])
+        self.channel.import_order_states()
         self.SaleChannel.import_prestashop_languages([self.alt_channel])
-        self.SaleChannel.import_prestashop_order_states([self.alt_channel])
+        self.alt_channel.import_order_states()
 
 
 class TestPrestashop(BaseTestCase):
@@ -407,48 +407,6 @@ class TestPrestashop(BaseTestCase):
                     len(self.LangPrestashop.get_channel_languages()), 2
                 )
 
-    def test_0030_import_prestashop_order_states(self):
-        """Test the import of order states
-        """
-        with Transaction().start(DB_NAME, USER, context=CONTEXT):
-            # Call method to setup defaults
-            self.setup_defaults()
-
-            with Transaction().set_context(
-                ps_test=True, current_channel=self.channel.id
-            ):
-                self.SaleChannel.import_prestashop_languages([self.channel])
-                # No state imported yet
-                self.assertEqual(
-                    self.PrestashopOrderState.search_using_ps_id(1), None
-                )
-
-                # Create a state
-                state_data = get_objectified_xml('order_states', 1)
-                state = self.PrestashopOrderState.\
-                    create_using_ps_data(
-                        state_data
-                    )
-
-                self.assertEqual(
-                    self.PrestashopOrderState.search_using_ps_id(1).id,
-                    state.id
-                )
-                self.assertEqual(
-                    state.order_state, 'sale.confirmed'
-                )
-
-                with Transaction().set_context(language='en_US'):
-                    state = self.PrestashopOrderState(state.id)
-                    self.assertEqual(
-                        state.prestashop_state, 'Awaiting cheque payment'
-                    )
-                with Transaction().set_context(language='fr_FR'):
-                    state = self.PrestashopOrderState(state.id)
-                    self.assertEqual(
-                        state.prestashop_state, 'Awaits cheque paymento'
-                    )
-
     def test_0040_setup_channel(self):
         """
         Test the setup of channel which imports languages and order states
@@ -459,22 +417,20 @@ class TestPrestashop(BaseTestCase):
             self.setup_defaults()
 
             self.assertEqual(len(self.LangPrestashop.search([])), 0)
-            self.assertEqual(len(self.PrestashopOrderState.search([])), 0)
+            self.assertEqual(len(self.OrderState.search([])), 0)
 
             with Transaction().set_context(ps_test=True):
                 self.assertRaises(
-                    UserError,
-                    self.SaleChannel.import_prestashop_order_states,
-                    [self.channel]
+                    UserError, self.channel.import_order_states
                 )
 
                 self.SaleChannel.import_prestashop_languages([self.channel])
 
                 self.assertTrue(len(self.LangPrestashop.search([])) > 0)
 
-                self.SaleChannel.import_prestashop_order_states([self.channel])
+                self.channel.import_order_states()
 
-                self.assertTrue(len(self.PrestashopOrderState.search([])) > 0)
+                self.assertTrue(len(self.OrderState.search([])) > 0)
 
             txn.cursor.rollback()
 
@@ -488,20 +444,17 @@ class TestPrestashop(BaseTestCase):
 
             # No record exists for any channel
             self.assertEqual(len(self.LangPrestashop.search([])), 0)
-            self.assertEqual(len(self.PrestashopOrderState.search([])), 0)
 
             with Transaction().set_context(ps_test=True):
 
                 # Same behaviour by both channel when no order states are there
                 self.assertRaises(
                     UserError,
-                    self.SaleChannel.import_prestashop_order_states,
-                    [self.channel]
+                    self.channel.import_order_states
                 )
                 self.assertRaises(
                     UserError,
-                    self.SaleChannel.import_prestashop_order_states,
-                    [self.alt_channel]
+                    self.alt_channel.import_order_states
                 )
 
                 # Import languages for first channel, the second one should
@@ -524,8 +477,7 @@ class TestPrestashop(BaseTestCase):
                 ])) == 0)
                 self.assertRaises(
                     UserError,
-                    self.SaleChannel.import_prestashop_order_states,
-                    [self.alt_channel]
+                    self.alt_channel.import_order_states
                 )
 
                 # Languages cannot be imported again for first channel but for
@@ -533,12 +485,12 @@ class TestPrestashop(BaseTestCase):
                 self.SaleChannel.import_prestashop_languages([self.alt_channel])
 
                 # Import order states for first channel only
-                self.SaleChannel.import_prestashop_order_states([self.channel])
+                self.channel.import_order_states()
 
-                self.assertTrue(len(self.PrestashopOrderState.search([
+                self.assertTrue(len(self.OrderState.search([
                     ('channel', '=', self.channel.id)
                 ])) > 0)
-                self.assertTrue(len(self.PrestashopOrderState.search([
+                self.assertTrue(len(self.OrderState.search([
                     ('channel', '=', self.alt_channel.id)
                 ])) == 0)
 

@@ -128,7 +128,8 @@ class TestSale(BaseTestCase):
 
                 sale = self.Sale.find_or_create_using_ps_data(order_data)
 
-                self.assertEqual(sale.state, 'cancel')
+                # As canceled orders are marked as do not import
+                self.assertEqual(sale.state, 'draft')
 
     def test_0020_order_import_from_prestashop(self):
         """Test Order import from prestashop

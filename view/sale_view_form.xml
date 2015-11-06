@@ -1,8 +1,0 @@
-<data>
-    <xpath expr="/form/notebook" position="inside">
-        <page string="Prestashop" col="4" id="prestashop" states="{'invisible': Eval('channel_type') != 'prestashop'}">
-            <label name="prestashop_id"/>
-            <field name="prestashop_id"/>
-        </page>
-    </xpath>
-</data>
