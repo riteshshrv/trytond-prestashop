@@ -75,6 +75,24 @@ class Product:
         return product
 
     @classmethod
+    def extract_product_values_from_ps_data(
+        cls, channel, name, product_data
+    ):
+        """
+        Extract product values from the prestashop data, used for
+        creation of product. This method can be overwritten by
+        custom modules to store extra info to a product
+        :param: product_data
+        :returns: Dictionary of values
+        """
+        return {
+            'name': name,
+            'default_uom': channel.default_uom.id,
+            'salable': True,
+            'sale_uom': channel.default_uom.id,
+        }
+
+    @classmethod
     def get_ps_main_product(cls, channel, product_data):
         """
         Return prestashop main product
@@ -112,13 +130,14 @@ class Product:
         # For a product in prestashop, create a template and a product in
         # tryton.
         with Transaction().set_context(language=site_lang.language.code):
-            template, = Template.create([{
-                'name': name_in_first_lang.pyval,
-                'salable': True,
-                'default_uom': channel.default_uom.id,
-                'sale_uom': channel.default_uom.id,
+            template_values = cls.extract_product_values_from_ps_data(
+                channel, name_in_first_lang.pyval, product_data
+            )
+            template_values.update({
                 'products': [('create', [variant_data])],
-            }])
+            })
+
+            template, = Template.create([template_values])
             product, = template.products
 
         # If there is only lang for name, control wont go to this loop
