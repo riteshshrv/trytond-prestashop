@@ -256,7 +256,7 @@ class ProductSaleChannelListing:
             ('channel.source', '!=', 'prestashop'),
         ])
         if non_presta_listings:
-            return super(ProductSaleChannelListing, cls).export_bulk_inventory(
+            super(ProductSaleChannelListing, cls).export_bulk_inventory(
                 non_presta_listings
             )
         presta_listings = filter(
