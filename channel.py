@@ -368,19 +368,20 @@ class Channel:
 
         return sales_to_export
 
-    def import_product(self, order_row_record):
+    def import_product(self, order_row_record, product_data=None):
         """
         Import specific product for this prestashop channel
         Downstream implementation for channel.import_product
         """
         if self.source != 'prestashop':
-            return super(Channel, self).import_product(order_row_record)
+            return super(Channel, self).import_product(
+                order_row_record, product_data
+            )
 
         Product = Pool().get('product.product')
         Listing = Pool().get('product.product.channel_listing')
 
         client = self.get_prestashop_client()
-        product_data = None
 
         if order_row_record.product_reference.pyval:
             sku = unicode(order_row_record.product_reference.pyval)
