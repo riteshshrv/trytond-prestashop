@@ -1,10 +1,11 @@
 <?xml version="1.0"?>
 <data>
-    <xpath expr="//field[@name='product']" position="after">
-        <newline/>
+    <xpath expr="//field[@name='product_identifier']" position="after">
+    <group colspan="4" id="prestashop" states="{'invisible': Eval('channel_source') != 'prestashop'}">
         <label name="prestashop_product_id"/>
         <field name="prestashop_product_id"/>
         <label name="prestashop_combination_id"/>
         <field name="prestashop_combination_id"/>
+    </group>
     </xpath>
 </data>
