@@ -132,7 +132,10 @@ class Sale:
         ):
             ChannelException.create([{
                 'origin': '%s,%s' % (sale.__name__, sale.id),
-                'log': 'Order total does not match.',
+                'log': 'Order total does not match. Expected %s, found %s' % (
+                    sale.total_amount, Decimal(
+                        str(order_record.total_paid_tax_excl))
+                ),
                 'channel': sale.channel.id,
             }])
 
